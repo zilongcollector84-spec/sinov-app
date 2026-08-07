@@ -112,60 +112,37 @@
 
         let balance = parseInt(localStorage.getItem('kryze_balance')) || 0;
         let cps = parseInt(localStorage.getItem('kryze_cps')) || 0;
-        let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || Date.now();
+        let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
 
-        // Oflayn vaqtda ishlab berilgan koinlarni hisoblash
-        function checkOfflineEarnings() {
+        // Oflayn daromadni hisoblash
+        function initOfflineEarnings() {
             let now = Date.now();
-            let secondsPassed = Math.floor((now - lastTime) / 1000);
-
-            if (cps > 0 && secondsPassed > 1) {
-                let earned = secondsPassed * cps;
-                balance += earned;
-                alert(`Siz yo'qligingizda mayneringiz ${earned} koin ishlab berdi! 🚀`);
+            if (cps > 0 && lastTime > 0) {
+                let secondsPassed = Math.floor((now - lastTime) / 1000);
+                if (secondsPassed >= 3) { // Kamida 3 sekund o'tgan bo'lsa
+                    let earned = secondsPassed * cps;
+                    balance += earned;
+                    updateDisplay();
+                    saveLocalState();
+                    setTimeout(() => {
+                        alert(`Siz yo'qligingizda mayneringiz ${earned} koin ishlab berdi! 🚀`);
+                    }, 500);
+                }
             }
             updateDisplay();
-            saveLocal();
         }
 
-        // Local xotiraga holatni va hozirgi vaqtni saqlash
-        function saveLocal() {
+        // Ma'lumot va vaqtni saqlash
+        function saveLocalState() {
             localStorage.setItem('kryze_balance', balance);
             localStorage.setItem('kryze_cps', cps);
             localStorage.setItem('kryze_last_time', Date.now());
         }
 
-        // Cloud storage zaxira
-        function saveCloud() {
-            if (tg.CloudStorage) {
-                tg.CloudStorage.setItem('kryze_balance', balance.toString());
-                tg.CloudStorage.setItem('kryze_cps', cps.toString());
-            }
-        }
-
-        // Bulutdan yuklash (birinchi marta ochilganda)
-        if (tg.CloudStorage) {
-            tg.CloudStorage.getItems(['kryze_balance', 'kryze_cps'], (err, values) => {
-                if (!err) {
-                    let cloudBal = parseInt(values.kryze_balance) || 0;
-                    let cloudCps = parseInt(values.kryze_cps) || 0;
-                    
-                    if (cloudBal > balance) balance = cloudBal;
-                    if (cloudCps > cps) cps = cloudCps;
-                    
-                    checkOfflineEarnings();
-                } else {
-                    checkOfflineEarnings();
-                }
-            });
-        } else {
-            checkOfflineEarnings();
-        }
-
         function tapCoin() {
             balance += 1;
             updateDisplay();
-            saveLocal();
+            saveLocalState();
         }
 
         function buyMiner() {
@@ -173,8 +150,7 @@
                 balance -= 50;
                 cps += 1;
                 updateDisplay();
-                saveLocal();
-                saveCloud();
+                saveLocalState();
             } else {
                 alert("Mablag' yetarli emas!");
             }
@@ -185,29 +161,21 @@
             document.getElementById('cps').innerText = cps;
         }
 
-        // Onlayn mayning (1 sekundlik intervallar bilan)
+        // Onlayn avto-mining (har soniyada)
         setInterval(() => {
             if (cps > 0) {
                 balance += cps;
                 updateDisplay();
-                saveLocal();
+                saveLocalState();
             }
         }, 1000);
 
-        // Har 5 sekundda bulutga yozib turish
-        setInterval(() => {
-            saveCloud();
-        }, 5000);
+        // Ilova yopilayotganda yoki orqa fonga o'tganda vaqtni muhrlash
+        window.addEventListener('pagehide', saveLocalState);
+        window.addEventListener('beforeunload', saveLocalState);
 
-        function withdraw() {
-            let card = document.getElementById('cardInput').value;
-            if (card.length < 5) {
-                alert("Karta raqamini to'g'ri kiriting!");
-                return;
-            }
-            tg.sendData(JSON.stringify({ action: "withdraw", amount: balance, card: card }));
-            alert("So'rov yuborildi! Balans: " + balance);
-        }
+        // Dasturni ishga tushirish
+        initOfflineEarnings();
     </script>
 </body>
 </html>
