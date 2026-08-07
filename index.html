@@ -366,15 +366,20 @@
         async function syncWithDatabase() {
             if (!supabaseClient || !user || !user.id) return;
             try {
-                await supabaseClient.from('users').upsert({
+                let userData = {
                     telegram_id: user.id,
-                    first_name: user.first_name || 'Foydalanuvchi',
+                    first_name: user.first_name || 'O\'yinchi',
                     username: user.username || '',
                     balance: parseFloat(balance.toFixed(1)),
                     cps: getTotalCPS(),
                     miner_counts: minerCounts
-                }, { onConflict: 'telegram_id' });
-            } catch (err) {}
+                };
+
+                let { data, error } = await supabaseClient.from('users').upsert([userData], { onConflict: 'telegram_id' });
+                if (error) console.log('Upsert error:', error);
+            } catch (err) {
+                console.log('Sync catch error:', err);
+            }
         }
 
         async function loadLeaderboard() {
@@ -382,40 +387,49 @@
             container.innerHTML = "Yuklanmoqda...";
 
             if (!supabaseClient) {
-                container.innerHTML = "Lokal rejimda ishlamoqda.";
+                container.innerHTML = "Bazaga ulanib bo'lmadi.";
                 return;
             }
 
             try {
-                let res = await supabaseClient
+                // Avval o'zimizning ma'lumotlarni saqlaymiz
+                await syncWithDatabase();
+
+                let { data, error } = await supabaseClient
                     .from('users')
                     .select('first_name, balance, cps')
                     .order('balance', { ascending: false })
                     .limit(100);
 
-                if (res.error || !res.data) {
-                    container.innerHTML = "Reyting yuklanmadi.";
+                if (error) {
+                    console.log('Leaderboard error:', error);
+                    container.innerHTML = "Xatolik: " + (error.message || "Reyting olinmadi");
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = "Hali reytingda hech kim yo'q.";
                     return;
                 }
 
                 let html = '';
-                res.data.forEach((item, index) => {
+                data.forEach((item, index) => {
                     let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '#' + (index + 1);
                     html += '<div class="leader-item">' +
                         '<div style="display: flex; align-items: center; gap: 10px;">' +
                             '<span class="rank">' + medal + '</span>' +
                             '<div style="text-align: left;">' +
                                 '<div style="font-weight: bold; color: #f8fafc;">' + (item.first_name || 'O\'yinchi') + '</div>' +
-                                '<div style="font-size: 11px; color: #94a3b8;">' + item.cps + ' koin/sek</div>' +
+                                '<div style="font-size: 11px; color: #94a3b8;">' + (item.cps || 0) + ' koin/sek</div>' +
                             '</div>' +
                         '</div>' +
-                        '<div style="font-weight: bold; color: #38bdf8;">' + Math.floor(item.balance).toLocaleString() + ' 🪙</div>' +
+                        '<div style="font-weight: bold; color: #38bdf8;">' + Math.floor(item.balance || 0).toLocaleString() + ' 🪙</div>' +
                     '</div>';
                 });
 
-                container.innerHTML = html || "Hali o'yinchilar yo'q.";
+                container.innerHTML = html;
             } catch (err) {
-                container.innerHTML = "Reyting olishda xatolik.";
+                container.innerHTML = "Reytingni yuklashda xatolik bo'ldi.";
             }
         }
 
