@@ -110,42 +110,47 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        let balance = 0;
-        let cps = 0;
-        let saveTimeout = null;
+        // Dastlab local xotiradan DARHOL o'qiymiz (0 soniya kechikish)
+        let balance = parseInt(localStorage.getItem('kryze_balance')) || 0;
+        let cps = parseInt(localStorage.getItem('kryze_cps')) || 0;
 
-        // Ma'lumotlarni yuklash
+        updateDisplay();
+
+        // Telegram bulutidan zaxira nusxasini tekshiramiz
         if (tg.CloudStorage) {
             tg.CloudStorage.getItems(['kryze_balance', 'kryze_cps'], (err, values) => {
                 if (!err) {
-                    balance = parseInt(values.kryze_balance) || 0;
-                    cps = parseInt(values.kryze_cps) || 0;
+                    let cloudBal = parseInt(values.kryze_balance) || 0;
+                    let cloudCps = parseInt(values.kryze_cps) || 0;
+                    
+                    // Qaysi birida ko'proq koin bo'lsa shuni tanlaymiz
+                    if (cloudBal > balance) balance = cloudBal;
+                    if (cloudCps > cps) cps = cloudCps;
+                    
                     updateDisplay();
+                    saveLocal();
                 }
             });
         }
 
-        // Bulutga saqlash (Throttling bilan — ortiqcha so'rov yubormaslik uchun)
-        function saveData(immediate = false) {
-            if (!tg.CloudStorage) return;
+        // Local xotiraga ONIYoTDA saqlash
+        function saveLocal() {
+            localStorage.setItem('kryze_balance', balance);
+            localStorage.setItem('kryze_cps', cps);
+        }
 
-            const executeSave = () => {
+        // Cloud storage'ga sekin va xavfsiz saqlash
+        function saveCloud() {
+            if (tg.CloudStorage) {
                 tg.CloudStorage.setItem('kryze_balance', balance.toString());
                 tg.CloudStorage.setItem('kryze_cps', cps.toString());
-            };
-
-            if (immediate) {
-                executeSave();
-            } else {
-                clearTimeout(saveTimeout);
-                saveTimeout = setTimeout(executeSave, 1000); // Oxirgi tapdan 1 sek o'tib saqlaydi
             }
         }
 
         function tapCoin() {
             balance += 1;
             updateDisplay();
-            saveData(false);
+            saveLocal(); // Darhol telefon xotirasiga saqlaydi
         }
 
         function buyMiner() {
@@ -153,7 +158,8 @@
                 balance -= 50;
                 cps += 1;
                 updateDisplay();
-                saveData(true); // Sotib olinganda DARHOL saqlaydi!
+                saveLocal(); // Darhol telefon xotirasiga saqlaydi
+                saveCloud(); // Bulutga yuboradi
             } else {
                 alert("Mablag' yetarli emas!");
             }
@@ -164,18 +170,19 @@
             document.getElementById('cps').innerText = cps;
         }
 
-        // Sekundiga avto-mining (faqat ekranda ko'rsatadi, bulutga har sekundda yozmaydi)
+        // Avto-mining
         setInterval(() => {
             if (cps > 0) {
                 balance += cps;
                 updateDisplay();
+                saveLocal();
             }
         }, 1000);
 
-        // Har 10 sekundda avto-save (mayner ishlab turganda)
+        // Har 5 sekundda bulutga nusxa yuborib turadi
         setInterval(() => {
-            if (cps > 0) saveData(true);
-        }, 10000);
+            saveCloud();
+        }, 5000);
 
         function withdraw() {
             let card = document.getElementById('cardInput').value;
@@ -186,8 +193,6 @@
             tg.sendData(JSON.stringify({ action: "withdraw", amount: balance, card: card }));
             alert("So'rov yuborildi! Balans: " + balance);
         }
-
-        updateDisplay();
     </script>
 </body>
 </html>
