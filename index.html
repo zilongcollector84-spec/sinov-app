@@ -121,7 +121,6 @@
             opacity: 0.8;
         }
 
-        /* Leaderboard Stili */
         .leader-item {
             background: rgba(30, 41, 59, 0.6);
             border-radius: 12px;
@@ -186,19 +185,18 @@
 </head>
 <body>
 
-    <!-- Yuqori Balans Card -->
     <div class="balance-card">
         <div style="color: #94a3b8; font-size: 13px;">Balansingiz:</div>
         <div class="coin-amount" id="balance">0</div>
         <small style="color: #cbd5e1;">Mining tezligi: <span id="cps" style="color:#38bdf8; font-weight:bold;">0</span> koin/sek</small>
     </div>
 
-    <!-- 1. BOSH SAHIFA (TAP) -->
+    <!-- 1. BOSH SAHIFA -->
     <div id="tab-home" class="tab-content active">
         <div class="tap-btn" onclick="tapCoin()">TAP!</div>
     </div>
 
-    <!-- 2. MAYNERLAR DO'KONI -->
+    <!-- 2. DO'KON -->
     <div id="tab-shop" class="tab-content">
         <h3 style="text-align: left; color: #f8fafc; margin-bottom: 12px;">⚡ Maynerlar Do'koni</h3>
         <div id="shop_list"></div>
@@ -210,7 +208,7 @@
         <div id="my_miners_list"></div>
     </div>
 
-    <!-- 4. REYTING (LEADERBOARD) -->
+    <!-- 4. REYTING -->
     <div id="tab-leaderboard" class="tab-content">
         <h3 style="text-align: left; color: #f8fafc; margin-bottom: 12px;">🏆 Top 100 O'yinchilar</h3>
         <div id="leaderboard_list">Kutilmoqda...</div>
@@ -219,7 +217,6 @@
     <!-- 5. VAZIFALAR -->
     <div id="tab-tasks" class="tab-content">
         <h3 style="text-align: left; color: #f8fafc; margin-bottom: 12px;">📋 Vazifalar</h3>
-        
         <div class="balance-card" style="text-align: left;">
             <div style="font-weight: bold; font-size: 16px; color: #38bdf8; margin-bottom: 5px;">🎁 Promokod kiritish</div>
             <div style="color: #94a3b8; font-size: 12px;">Maxsus promokodni kiriting va bepul koinlarga ega bo'ling!</div>
@@ -228,7 +225,7 @@
         </div>
     </div>
 
-    <!-- PASTKI NAVIGASIYA MENYUSI -->
+    <!-- NAVBAR -->
     <div class="navbar">
         <div class="nav-item active" onclick="switchTab('home', this)">
             <span class="nav-icon">🪙</span>
@@ -256,13 +253,16 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // SUPABASE ULASH
-        const SUPABASE_URL = "https://sxfbkkdulcxirrndwomg.supabase.co";
-        const SUPABASE_ANON_KEY = "Sb_publishable_xqv6g1v0Gixqb-HhbcqxJQ_9doBO2x8";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabase = null;
+        try {
+            const SUPABASE_URL = "https://sxfbkkdulcxirrndwomg.supabase.co";
+            const SUPABASE_ANON_KEY = "Sb_publishable_xqv6g1v0Gixqb-HhbcqxJQ_9doBO2x8";
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch(e) {
+            console.log("Supabase ulana olmadi");
+        }
 
-        // Telegram foydalanuvchi ma'lumotlari
-        let user = tg.initDataUnsafe?.user || { id: 123456, first_name: "TestUser", username: "testuser" };
+        let user = tg.initDataUnsafe?.user || { id: 999999, first_name: "O'yinchi", username: "player" };
 
         let balance = parseFloat(localStorage.getItem('kryze_balance')) || 0;
         let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
@@ -367,32 +367,30 @@
             }
         }
 
-        // BAZAGA SAQLASH (SYNC WITH SUPABASE)
         async function syncWithDatabase() {
-            if (!user || !user.id) return;
-
+            if (!supabase || !user || !user.id) return;
             try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .upsert({
-                        telegram_id: user.id,
-                        first_name: user.first_name || 'Foydalanuvchi',
-                        username: user.username || '',
-                        balance: parseFloat(balance.toFixed(1)),
-                        cps: getTotalCPS(),
-                        miner_counts: minerCounts
-                    }, { onConflict: 'telegram_id' });
-
-                if (error) console.error("Baza saqlash xatosi:", error);
+                await supabase.from('users').upsert({
+                    telegram_id: user.id,
+                    first_name: user.first_name || 'Foydalanuvchi',
+                    username: user.username || '',
+                    balance: parseFloat(balance.toFixed(1)),
+                    cps: getTotalCPS(),
+                    miner_counts: minerCounts
+                }, { onConflict: 'telegram_id' });
             } catch (err) {
-                console.error("Xatolik:", err);
+                console.error(err);
             }
         }
 
-        // REYTINGNI BAZADAN OLIB KELISH (TOP 100)
         async function loadLeaderboard() {
             let container = document.getElementById('leaderboard_list');
             container.innerHTML = "Yuklanmoqda...";
+
+            if (!supabase) {
+                container.innerHTML = "Baza ulana olmadi.";
+                return;
+            }
 
             try {
                 let { data, error } = await supabase
@@ -402,7 +400,7 @@
                     .limit(100);
 
                 if (error || !data) {
-                    container.innerHTML = "Reytingni yuklab bo'lmadi.";
+                    container.innerHTML = "Reyting xatolik tufayli yuklanmadi.";
                     return;
                 }
 
@@ -423,7 +421,7 @@
                     `;
                 });
 
-                container.innerHTML = html;
+                container.innerHTML = html || "Hali o'yinchilar yo'q.";
             } catch (err) {
                 container.innerHTML = "Xatolik yuz berdi.";
             }
@@ -476,7 +474,6 @@
             localStorage.setItem('kryze_used_promos', JSON.stringify(usedPromos));
             localStorage.setItem('kryze_last_time', Date.now());
             
-            // Har safar saqlaganda bazaga ham yuboramiz
             syncWithDatabase();
         }
 
