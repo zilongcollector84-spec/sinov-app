@@ -214,7 +214,6 @@
         let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
         let usedPromos = JSON.parse(localStorage.getItem('kryze_used_promos')) || [];
 
-        // Maynerlar ro'yxati
         const shopConfig = [
             { id: 1, name: "Kichik Mayner", price: 10000, cps: 0.1 },
             { id: 2, name: "O'rta Mayner", price: 25000, cps: 0.3 },
@@ -222,8 +221,19 @@
             { id: 4, name: "Super Mayner", price: 100000, cps: 1.5 }
         ];
 
-        // Har bir mayner turining sonini saqlaydigan obyekt
         let minerCounts = JSON.parse(localStorage.getItem('kryze_miner_counts')) || { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+        // ESKI SOTIB OLINGAN MAYNERLARNI YANGI FORMAGA O'TKAZISH (MIGRATION)
+        let oldMiners = JSON.parse(localStorage.getItem('kryze_my_miners')) || [];
+        if (oldMiners.length > 0) {
+            oldMiners.forEach(m => {
+                if (m.shopId && minerCounts[m.shopId] !== undefined) {
+                    minerCounts[m.shopId] += 1;
+                }
+            });
+            localStorage.removeItem('kryze_my_miners'); // Eskisini tozalab tashlaymiz
+            localStorage.setItem('kryze_miner_counts', JSON.stringify(minerCounts));
+        }
 
         function switchTab(tabName, el) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -236,7 +246,6 @@
             if (tabName === 'my-miners') renderMyMiners();
         }
 
-        // Jami tezlikni hisoblash
         function getTotalCPS() {
             let total = 0;
             shopConfig.forEach(item => {
@@ -246,7 +255,6 @@
             return parseFloat(total.toFixed(2));
         }
 
-        // Mayner sotib olish
         function buyMiner(shopId) {
             let item = shopConfig.find(s => s.id === shopId);
             if (!item) return;
@@ -284,7 +292,6 @@
             container.innerHTML = html;
         }
 
-        // Mening Maynerlarim sahifasida guruhlab ko'rsatish
         function renderMyMiners() {
             let container = document.getElementById('my_miners_list');
             let hasAnyMiner = false;
