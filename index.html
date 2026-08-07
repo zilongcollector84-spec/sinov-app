@@ -19,7 +19,7 @@
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 15px;
-            padding-bottom: 85px;
+            padding-bottom: 80px;
             margin: 0;
             overflow-y: auto;
         }
@@ -37,16 +37,16 @@
         }
         .tap-btn {
             background: radial-gradient(circle, #f59e0b 0%, #d97706 100%);
-            width: 170px;
-            height: 170px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             border: 4px solid #fef3c7;
             color: white;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
-            margin: 25px auto;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);
+            margin: 30px auto;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -55,6 +55,7 @@
             transform: scale(0.95);
         }
         
+        /* Sahifalar boshqaruvi */
         .tab-content {
             display: none;
         }
@@ -62,19 +63,17 @@
             display: block;
         }
 
+        /* Card va List uslublari */
         .card {
             background: #1e293b;
             border: 1px solid #334155;
             border-radius: 12px;
             padding: 12px;
             margin-bottom: 10px;
-            text-align: left;
-        }
-        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer;
+            text-align: left;
         }
         .card-info {
             font-size: 13px;
@@ -88,28 +87,6 @@
         .card-sub {
             color: #94a3b8;
             font-size: 12px;
-        }
-
-        /* Akkorion (Group/Sub-items) */
-        .miner-details {
-            display: none;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed #334155;
-        }
-        .miner-details.open {
-            display: block;
-        }
-        .sub-miner-item {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-top: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
         }
 
         button.btn {
@@ -129,6 +106,7 @@
             opacity: 0.8;
         }
 
+        /* Pastki Menyu */
         .navbar {
             position: fixed;
             bottom: 0;
@@ -160,12 +138,14 @@
 
         input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin-top: 10px;
-            border-radius: 6px;
+            border-radius: 8px;
             border: 1px solid #334155;
             background: #0f172a;
             color: white;
+            font-size: 14px;
+            text-align: center;
             -webkit-user-select: text;
             user-select: text;
         }
@@ -173,21 +153,16 @@
 </head>
 <body>
 
+    <!-- Yuqori Balans Card -->
     <div class="balance-card">
         <div>Balansingiz:</div>
         <div class="coin-amount" id="balance">0</div>
         <small>Mining tezligi: <span id="cps">0</span> koin/sek</small>
     </div>
 
-    <!-- 1. BOSH SAHIFA -->
+    <!-- 1. BOSH SAHIFA (TAP) -->
     <div id="tab-home" class="tab-content active">
         <div class="tap-btn" onclick="tapCoin()">TAP!</div>
-        
-        <div class="balance-card" style="margin-top: 20px;">
-            <h3>Pulni chiqarish</h3>
-            <input type="text" id="cardInput" placeholder="Karta/Hamyon raqami">
-            <button class="btn" style="width: 100%; margin-top: 10px; background: #16a34a; font-size: 14px; padding: 10px;" onclick="withdraw()">Chiqarib olishga so'rov</button>
-        </div>
     </div>
 
     <!-- 2. MAYNERLAR DO'KONI -->
@@ -202,17 +177,19 @@
         <div id="my_miners_list"></div>
     </div>
 
-    <!-- 4. VAZIFALAR -->
+    <!-- 4. VAZIFALAR (TASKS & PROMOCODE) -->
     <div id="tab-tasks" class="tab-content">
         <h3 style="text-align: left; color: #cbd5e1; margin-bottom: 10px;">📋 Vazifalar</h3>
-        <div class="balance-card" style="text-align: center; padding: 30px 10px;">
-            <div style="font-size: 40px; margin-bottom: 10px;">⏳</div>
-            <div style="font-weight: bold; font-size: 16px;">Vazifalar bo'limi tez orada ishga tushadi!</div>
-            <div style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Yangi vazifalar va koin mukofotlarini kuting.</div>
+        
+        <div class="balance-card" style="text-align: left;">
+            <div style="font-weight: bold; font-size: 16px; color: #38bdf8; margin-bottom: 5px;">🎁 Promokod kiritish</div>
+            <div style="color: #94a3b8; font-size: 12px;">Maxsus promokodni kiriting va bepul koinlarga ega bo'ling!</div>
+            <input type="text" id="promoInput" placeholder="Promokodni yozing...">
+            <button class="btn" style="width: 100%; margin-top: 10px; background: #16a34a; padding: 10px; font-size: 14px;" onclick="claimPromo()">Aktivlashtirish</button>
         </div>
     </div>
 
-    <!-- PASTKI NAVIGATSIYA MENYUSI -->
+    <!-- PASTKI NAVIGASIYA MENYUSI -->
     <div class="navbar">
         <div class="nav-item active" onclick="switchTab('home', this)">
             <span class="nav-icon">🪙</span>
@@ -238,7 +215,9 @@
 
         let balance = parseFloat(localStorage.getItem('kryze_balance')) || 0;
         let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
+        let usedPromos = JSON.parse(localStorage.getItem('kryze_used_promos')) || [];
 
+        // Maynerlar ro'yxati va narxlari
         const shopConfig = [
             { id: 1, name: "Kichik Mayner", price: 10000, cps: 0.1 },
             { id: 2, name: "O'rta Mayner", price: 25000, cps: 0.3 },
@@ -271,7 +250,6 @@
 
             if (balance >= item.price) {
                 balance -= item.price;
-
                 let countOfType = myMiners.filter(m => m.shopId === shopId).length + 1;
                 let newMiner = {
                     id: Date.now() + Math.random(),
@@ -284,7 +262,7 @@
                 saveLocalState();
                 updateDisplay();
                 renderShop();
-                alert(`${newMiner.name} muvaffaqiyatli sotib olindi! 🎉`);
+                alert(`${newMiner.name} sotib olindi! 🎉`);
             } else {
                 alert(`Mablag' yetarli emas! Narxi: ${item.price.toLocaleString()} koin`);
             }
@@ -296,21 +274,18 @@
             shopConfig.forEach(item => {
                 html += `
                     <div class="card">
-                        <div class="card-header">
-                            <div class="card-info">
-                                <div class="card-title">${item.name}</div>
-                                <div class="card-sub">Tezlik: <strong style="color: #38bdf8;">+${item.cps} koin/sek</strong></div>
-                                <div class="card-sub">Narxi: <strong style="color: #f59e0b;">${item.price.toLocaleString()}</strong> koin</div>
-                            </div>
-                            <button class="btn btn-buy" onclick="buyMiner(${item.id})">Sotib olish</button>
+                        <div class="card-info">
+                            <div class="card-title">${item.name}</div>
+                            <div class="card-sub">Tezlik: <strong style="color: #38bdf8;">+${item.cps} koin/sek</strong></div>
+                            <div class="card-sub">Narxi: <strong style="color: #f59e0b;">${item.price.toLocaleString()}</strong> koin</div>
                         </div>
+                        <button class="btn btn-buy" onclick="buyMiner(${item.id})">Sotib olish</button>
                     </div>
                 `;
             });
             container.innerHTML = html;
         }
 
-        // Mening Maynerlarim - Guruhlangan menyu ko'rinishi
         function renderMyMiners() {
             let container = document.getElementById('my_miners_list');
             if (myMiners.length === 0) {
@@ -319,52 +294,41 @@
             }
 
             let html = '';
-            shopConfig.forEach(type => {
-                let minersOfType = myMiners.filter(m => m.shopId === type.id);
-                if (minersOfType.length > 0) {
-                    let totalCpsForGroup = (minersOfType.length * type.cps).toFixed(2);
-                    html += `
-                        <div class="card">
-                            <div class="card-header" onclick="toggleAccordion('group-${type.id}')">
-                                <div class="card-info">
-                                    <div class="card-title">🚜 ${type.name}</div>
-                                    <div class="card-sub"><strong style="color: #38bdf8;">${minersOfType.length} dona faol</strong> — Har biri ${type.cps} koin/sek</div>
-                                    <div class="card-sub" style="margin-top: 2px;">Umumiy: <strong style="color: #4ade80;">+${totalCpsForGroup} koin/sek</strong></div>
-                                </div>
-                                <span id="arrow-group-${type.id}" style="color: #38bdf8; font-size: 18px;">▼</span>
-                            </div>
-                            
-                            <div id="group-${type.id}" class="miner-details">
-                    `;
-                    
-                    minersOfType.forEach(m => {
-                        html += `
-                            <div class="sub-miner-item">
-                                <div>${m.name}</div>
-                                <div style="color: #38bdf8;">+${m.cps} koin/sek</div>
-                            </div>
-                        `;
-                    });
-
-                    html += `
-                            </div>
+            myMiners.forEach(m => {
+                html += `
+                    <div class="card">
+                        <div class="card-info">
+                            <div class="card-title">🚜 ${m.name}</div>
+                            <div class="card-sub">Ishlab chiqarish: <strong style="color: #38bdf8;">+${m.cps} koin/sek</strong></div>
                         </div>
-                    `;
-                }
+                        <span style="font-size: 11px; background: #334155; padding: 4px 8px; border-radius: 6px; color: #4ade80;">Faol</span>
+                    </div>
+                `;
             });
             container.innerHTML = html;
         }
 
-        // Menyu ochilib-yopilishi uchun (Accordion)
-        function toggleAccordion(id) {
-            let el = document.getElementById(id);
-            let arrow = document.getElementById(`arrow-${id}`);
-            if (el.classList.contains('open')) {
-                el.classList.remove('open');
-                arrow.innerText = '▼';
+        // Promokod tekshirish
+        function claimPromo() {
+            let code = document.getElementById('promoInput').value.trim().toLowerCase();
+            if (!code) {
+                alert("Promokodni kiriting!");
+                return;
+            }
+
+            if (code === 'pull') {
+                if (usedPromos.includes('pull')) {
+                    alert("Siz bu promokoddan foydalanib bo'lgansiz!");
+                } else {
+                    balance += 100000;
+                    usedPromos.push('pull');
+                    saveLocalState();
+                    updateDisplay();
+                    document.getElementById('promoInput').value = '';
+                    alert("Tabriklaymiz! 100,000 koin hisobingizga qo'shildi! 🎉");
+                }
             } else {
-                el.classList.add('open');
-                arrow.innerText = '▲';
+                alert("Noto'g'ri promokod kiritildi!");
             }
         }
 
@@ -389,6 +353,7 @@
         function saveLocalState() {
             localStorage.setItem('kryze_balance', balance);
             localStorage.setItem('kryze_my_miners', JSON.stringify(myMiners));
+            localStorage.setItem('kryze_used_promos', JSON.stringify(usedPromos));
             localStorage.setItem('kryze_last_time', Date.now());
         }
 
@@ -416,16 +381,6 @@
         window.addEventListener('beforeunload', saveLocalState);
 
         initOfflineEarnings();
-
-        function withdraw() {
-            let card = document.getElementById('cardInput').value;
-            if (card.length < 5) {
-                alert("Karta raqamini to'g'ri kiriting!");
-                return;
-            }
-            tg.sendData(JSON.stringify({ action: "withdraw", amount: balance, card: card }));
-            alert("So'rov yuborildi! Balans: " + balance.toFixed(1));
-        }
     </script>
 </body>
 </html>
