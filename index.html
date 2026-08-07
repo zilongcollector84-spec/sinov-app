@@ -55,7 +55,6 @@
             transform: scale(0.95);
         }
         
-        /* Sahifalar boshqaruvi */
         .tab-content {
             display: none;
         }
@@ -63,7 +62,6 @@
             display: block;
         }
 
-        /* Card va List uslublari */
         .card {
             background: #1e293b;
             border: 1px solid #334155;
@@ -106,7 +104,6 @@
             opacity: 0.8;
         }
 
-        /* Pastki Menyu */
         .navbar {
             position: fixed;
             bottom: 0;
@@ -217,7 +214,7 @@
         let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
         let usedPromos = JSON.parse(localStorage.getItem('kryze_used_promos')) || [];
 
-        // Maynerlar ro'yxati va narxlari
+        // Maynerlar ro'yxati
         const shopConfig = [
             { id: 1, name: "Kichik Mayner", price: 10000, cps: 0.1 },
             { id: 2, name: "O'rta Mayner", price: 25000, cps: 0.3 },
@@ -225,7 +222,8 @@
             { id: 4, name: "Super Mayner", price: 100000, cps: 1.5 }
         ];
 
-        let myMiners = JSON.parse(localStorage.getItem('kryze_my_miners')) || [];
+        // Har bir mayner turining sonini saqlaydigan obyekt
+        let minerCounts = JSON.parse(localStorage.getItem('kryze_miner_counts')) || { 1: 0, 2: 0, 3: 0, 4: 0 };
 
         function switchTab(tabName, el) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -238,31 +236,29 @@
             if (tabName === 'my-miners') renderMyMiners();
         }
 
+        // Jami tezlikni hisoblash
         function getTotalCPS() {
             let total = 0;
-            myMiners.forEach(m => total += m.cps);
+            shopConfig.forEach(item => {
+                let count = minerCounts[item.id] || 0;
+                total += count * item.cps;
+            });
             return parseFloat(total.toFixed(2));
         }
 
+        // Mayner sotib olish
         function buyMiner(shopId) {
             let item = shopConfig.find(s => s.id === shopId);
             if (!item) return;
 
             if (balance >= item.price) {
                 balance -= item.price;
-                let countOfType = myMiners.filter(m => m.shopId === shopId).length + 1;
-                let newMiner = {
-                    id: Date.now() + Math.random(),
-                    shopId: shopId,
-                    name: `${item.name} #${countOfType}`,
-                    cps: item.cps
-                };
+                minerCounts[shopId] = (minerCounts[shopId] || 0) + 1;
 
-                myMiners.push(newMiner);
                 saveLocalState();
                 updateDisplay();
                 renderShop();
-                alert(`${newMiner.name} sotib olindi! 🎉`);
+                alert(`${item.name} sotib olindi! 🎉`);
             } else {
                 alert(`Mablag' yetarli emas! Narxi: ${item.price.toLocaleString()} koin`);
             }
@@ -272,12 +268,14 @@
             let container = document.getElementById('shop_list');
             let html = '';
             shopConfig.forEach(item => {
+                let owned = minerCounts[item.id] || 0;
                 html += `
                     <div class="card">
                         <div class="card-info">
                             <div class="card-title">${item.name}</div>
                             <div class="card-sub">Tezlik: <strong style="color: #38bdf8;">+${item.cps} koin/sek</strong></div>
                             <div class="card-sub">Narxi: <strong style="color: #f59e0b;">${item.price.toLocaleString()}</strong> koin</div>
+                            <div class="card-sub" style="color: #4ade80; margin-top:2px;">Sizda bor: <strong>${owned} dona</strong></div>
                         </div>
                         <button class="btn btn-buy" onclick="buyMiner(${item.id})">Sotib olish</button>
                     </div>
@@ -286,29 +284,37 @@
             container.innerHTML = html;
         }
 
+        // Mening Maynerlarim sahifasida guruhlab ko'rsatish
         function renderMyMiners() {
             let container = document.getElementById('my_miners_list');
-            if (myMiners.length === 0) {
-                container.innerHTML = `<div class="balance-card" style="color: #64748b;">Sizda hali hech qanday mayner yo'q. Do'kondan sotib oling!</div>`;
-                return;
-            }
-
+            let hasAnyMiner = false;
             let html = '';
-            myMiners.forEach(m => {
-                html += `
-                    <div class="card">
-                        <div class="card-info">
-                            <div class="card-title">🚜 ${m.name}</div>
-                            <div class="card-sub">Ishlab chiqarish: <strong style="color: #38bdf8;">+${m.cps} koin/sek</strong></div>
+
+            shopConfig.forEach(item => {
+                let count = minerCounts[item.id] || 0;
+                if (count > 0) {
+                    hasAnyMiner = true;
+                    let totalCps = parseFloat((count * item.cps).toFixed(2));
+                    html += `
+                        <div class="card">
+                            <div class="card-info">
+                                <div class="card-title">🚜 ${item.name}</div>
+                                <div class="card-sub">Soni: <strong style="color: #f59e0b;">${count} dona</strong></div>
+                                <div class="card-sub">Umumiy tezlik: <strong style="color: #38bdf8;">+${totalCps} koin/sek</strong></div>
+                            </div>
+                            <span style="font-size: 11px; background: #334155; padding: 4px 8px; border-radius: 6px; color: #4ade80;">Faol</span>
                         </div>
-                        <span style="font-size: 11px; background: #334155; padding: 4px 8px; border-radius: 6px; color: #4ade80;">Faol</span>
-                    </div>
-                `;
+                    `;
+                }
             });
-            container.innerHTML = html;
+
+            if (!hasAnyMiner) {
+                container.innerHTML = `<div class="balance-card" style="color: #64748b;">Sizda hali hech qanday mayner yo'q. Do'kondan sotib oling!</div>`;
+            } else {
+                container.innerHTML = html;
+            }
         }
 
-        // Promokod tekshirish
         function claimPromo() {
             let code = document.getElementById('promoInput').value.trim().toLowerCase();
             if (!code) {
@@ -352,7 +358,7 @@
 
         function saveLocalState() {
             localStorage.setItem('kryze_balance', balance);
-            localStorage.setItem('kryze_my_miners', JSON.stringify(myMiners));
+            localStorage.setItem('kryze_miner_counts', JSON.stringify(minerCounts));
             localStorage.setItem('kryze_used_promos', JSON.stringify(usedPromos));
             localStorage.setItem('kryze_last_time', Date.now());
         }
