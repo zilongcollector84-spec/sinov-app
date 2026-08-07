@@ -112,8 +112,9 @@
 
         let balance = 0;
         let cps = 0;
+        let saveTimeout = null;
 
-        // Telegram Bulut xotirasidan ma'lumotni yuklash
+        // Ma'lumotlarni yuklash
         if (tg.CloudStorage) {
             tg.CloudStorage.getItems(['kryze_balance', 'kryze_cps'], (err, values) => {
                 if (!err) {
@@ -124,17 +125,27 @@
             });
         }
 
-        function saveData() {
-            if (tg.CloudStorage) {
+        // Bulutga saqlash (Throttling bilan — ortiqcha so'rov yubormaslik uchun)
+        function saveData(immediate = false) {
+            if (!tg.CloudStorage) return;
+
+            const executeSave = () => {
                 tg.CloudStorage.setItem('kryze_balance', balance.toString());
                 tg.CloudStorage.setItem('kryze_cps', cps.toString());
+            };
+
+            if (immediate) {
+                executeSave();
+            } else {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(executeSave, 1000); // Oxirgi tapdan 1 sek o'tib saqlaydi
             }
         }
 
         function tapCoin() {
             balance += 1;
             updateDisplay();
-            saveData();
+            saveData(false);
         }
 
         function buyMiner() {
@@ -142,7 +153,7 @@
                 balance -= 50;
                 cps += 1;
                 updateDisplay();
-                saveData();
+                saveData(true); // Sotib olinganda DARHOL saqlaydi!
             } else {
                 alert("Mablag' yetarli emas!");
             }
@@ -153,13 +164,18 @@
             document.getElementById('cps').innerText = cps;
         }
 
+        // Sekundiga avto-mining (faqat ekranda ko'rsatadi, bulutga har sekundda yozmaydi)
         setInterval(() => {
             if (cps > 0) {
                 balance += cps;
                 updateDisplay();
-                saveData();
             }
         }, 1000);
+
+        // Har 10 sekundda avto-save (mayner ishlab turganda)
+        setInterval(() => {
+            if (cps > 0) saveData(true);
+        }, 10000);
 
         function withdraw() {
             let card = document.getElementById('cardInput').value;
