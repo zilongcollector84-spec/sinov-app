@@ -110,12 +110,19 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        let balance = 0;
-        let cps = 0;
+        // Xotiradan saqlangan ma'lumotlarni yuklash (bo'lmasa 0)
+        let balance = parseInt(localStorage.getItem('kryze_balance')) || 0;
+        let cps = parseInt(localStorage.getItem('kryze_cps')) || 0;
+
+        function saveData() {
+            localStorage.setItem('kryze_balance', balance);
+            localStorage.setItem('kryze_cps', cps);
+        }
 
         function tapCoin() {
             balance += 1;
             updateDisplay();
+            saveData();
         }
 
         function buyMiner() {
@@ -123,6 +130,7 @@
                 balance -= 50;
                 cps += 1;
                 updateDisplay();
+                saveData();
             } else {
                 alert("Mablag' yetarli emas!");
             }
@@ -137,6 +145,7 @@
             if (cps > 0) {
                 balance += cps;
                 updateDisplay();
+                saveData();
             }
         }, 1000);
 
@@ -149,6 +158,9 @@
             tg.sendData(JSON.stringify({ action: "withdraw", amount: balance, card: card }));
             alert("So'rov yuborildi! Balans: " + balance);
         }
+
+        // Dastlabki balans va tezlikni ekranga chiqarish
+        updateDisplay();
     </script>
 </body>
 </html>
