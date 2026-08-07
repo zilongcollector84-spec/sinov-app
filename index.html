@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kryze Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             touch-action: manipulation;
@@ -24,7 +25,6 @@
             overflow-y: auto;
         }
         
-        /* Glassmorphism Balans Card */
         .balance-card {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(10px);
@@ -67,7 +67,6 @@
             display: block;
         }
 
-        /* 3D Rasm va Card Stili */
         .card {
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -122,7 +121,24 @@
             opacity: 0.8;
         }
 
-        /* Navbar */
+        /* Leaderboard Stili */
+        .leader-item {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .rank {
+            font-weight: bold;
+            font-size: 16px;
+            width: 30px;
+            color: #f59e0b;
+        }
+
         .navbar {
             position: fixed;
             bottom: 0;
@@ -194,7 +210,13 @@
         <div id="my_miners_list"></div>
     </div>
 
-    <!-- 4. VAZIFALAR (TASKS & PROMOCODE) -->
+    <!-- 4. REYTING (LEADERBOARD) -->
+    <div id="tab-leaderboard" class="tab-content">
+        <h3 style="text-align: left; color: #f8fafc; margin-bottom: 12px;">🏆 Top 100 O'yinchilar</h3>
+        <div id="leaderboard_list">Kutilmoqda...</div>
+    </div>
+
+    <!-- 5. VAZIFALAR -->
     <div id="tab-tasks" class="tab-content">
         <h3 style="text-align: left; color: #f8fafc; margin-bottom: 12px;">📋 Vazifalar</h3>
         
@@ -220,6 +242,10 @@
             <span class="nav-icon">🚜</span>
             <span>Maynerlarim</span>
         </div>
+        <div class="nav-item" onclick="switchTab('leaderboard', this)">
+            <span class="nav-icon">🏆</span>
+            <span>Reyting</span>
+        </div>
         <div class="nav-item" onclick="switchTab('tasks', this)">
             <span class="nav-icon">📋</span>
             <span>Vazifalar</span>
@@ -230,11 +256,18 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
+        // SUPABASE ULASH
+        const SUPABASE_URL = "https://sxfbkkdulcxirrndwomg.supabase.co";
+        const SUPABASE_ANON_KEY = "Sb_publishable_xqv6g1v0Gixqb-HhbcqxJQ_9doBO2x8";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Telegram foydalanuvchi ma'lumotlari
+        let user = tg.initDataUnsafe?.user || { id: 123456, first_name: "TestUser", username: "testuser" };
+
         let balance = parseFloat(localStorage.getItem('kryze_balance')) || 0;
         let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
         let usedPromos = JSON.parse(localStorage.getItem('kryze_used_promos')) || [];
 
-        // Maynerlar va ularning rasmlari (Siz GitHub'ga yuklaganingizdan so'ng 'image' xossasiga o'zingizning rasm manzilingizni qo'yishingiz mumkin)
         const shopConfig = [
             { id: 1, name: "Kichik Mayner", price: 10000, cps: 0.1, image: "https://cdn-icons-png.flaticon.com/512/6298/6298533.png" },
             { id: 2, name: "O'rta Mayner", price: 25000, cps: 0.3, image: "https://cdn-icons-png.flaticon.com/512/6298/6298583.png" },
@@ -243,18 +276,6 @@
         ];
 
         let minerCounts = JSON.parse(localStorage.getItem('kryze_miner_counts')) || { 1: 0, 2: 0, 3: 0, 4: 0 };
-
-        // Eskilarini yangisiga moslash (Migration)
-        let oldMiners = JSON.parse(localStorage.getItem('kryze_my_miners')) || [];
-        if (oldMiners.length > 0) {
-            oldMiners.forEach(m => {
-                if (m.shopId && minerCounts[m.shopId] !== undefined) {
-                    minerCounts[m.shopId] += 1;
-                }
-            });
-            localStorage.removeItem('kryze_my_miners');
-            localStorage.setItem('kryze_miner_counts', JSON.stringify(minerCounts));
-        }
 
         function switchTab(tabName, el) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -265,6 +286,7 @@
 
             if (tabName === 'shop') renderShop();
             if (tabName === 'my-miners') renderMyMiners();
+            if (tabName === 'leaderboard') loadLeaderboard();
         }
 
         function getTotalCPS() {
@@ -345,6 +367,68 @@
             }
         }
 
+        // BAZAGA SAQLASH (SYNC WITH SUPABASE)
+        async function syncWithDatabase() {
+            if (!user || !user.id) return;
+
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .upsert({
+                        telegram_id: user.id,
+                        first_name: user.first_name || 'Foydalanuvchi',
+                        username: user.username || '',
+                        balance: parseFloat(balance.toFixed(1)),
+                        cps: getTotalCPS(),
+                        miner_counts: minerCounts
+                    }, { onConflict: 'telegram_id' });
+
+                if (error) console.error("Baza saqlash xatosi:", error);
+            } catch (err) {
+                console.error("Xatolik:", err);
+            }
+        }
+
+        // REYTINGNI BAZADAN OLIB KELISH (TOP 100)
+        async function loadLeaderboard() {
+            let container = document.getElementById('leaderboard_list');
+            container.innerHTML = "Yuklanmoqda...";
+
+            try {
+                let { data, error } = await supabase
+                    .from('users')
+                    .select('first_name, balance, cps')
+                    .order('balance', { ascending: false })
+                    .limit(100);
+
+                if (error || !data) {
+                    container.innerHTML = "Reytingni yuklab bo'lmadi.";
+                    return;
+                }
+
+                let html = '';
+                data.forEach((item, index) => {
+                    let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+                    html += `
+                        <div class="leader-item">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="rank">${medal}</span>
+                                <div style="text-align: left;">
+                                    <div style="font-weight: bold; color: #f8fafc;">${item.first_name}</div>
+                                    <div style="font-size: 11px; color: #94a3b8;">${item.cps} koin/sek</div>
+                                </div>
+                            </div>
+                            <div style="font-weight: bold; color: #38bdf8;">${Math.floor(item.balance).toLocaleString()} 🪙</div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = "Xatolik yuz berdi.";
+            }
+        }
+
         function claimPromo() {
             let code = document.getElementById('promoInput').value.trim().toLowerCase();
             if (!code) {
@@ -391,6 +475,9 @@
             localStorage.setItem('kryze_miner_counts', JSON.stringify(minerCounts));
             localStorage.setItem('kryze_used_promos', JSON.stringify(usedPromos));
             localStorage.setItem('kryze_last_time', Date.now());
+            
+            // Har safar saqlaganda bazaga ham yuboramiz
+            syncWithDatabase();
         }
 
         function tapCoin() {
@@ -417,6 +504,7 @@
         window.addEventListener('beforeunload', saveLocalState);
 
         initOfflineEarnings();
+        syncWithDatabase();
     </script>
 </body>
 </html>
