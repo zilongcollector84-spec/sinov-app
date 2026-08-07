@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kryze Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -245,20 +246,23 @@
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        try { tg.expand(); } catch(e){}
+        let tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            try { tg.expand(); } catch(e){}
+        }
 
-        // SUPABASE CLIENT
+        // SUPABASE INITIALIZATION
+        const SUPABASE_URL = "https://sxfbkkdulcxirrndwomg.supabase.co";
+        const SUPABASE_KEY = "Sb_publishable_xqv6g1v0Gixqb-HhbcqxJQ_9doBO2x8";
+        
         let supabaseClient = null;
-        try {
-            if (window.supabase) {
-                const SUPABASE_URL = "https://sxfbkkdulcxirrndwomg.supabase.co";
-                const SUPABASE_ANON_KEY = "Sb_publishable_xqv6g1v0Gixqb-HhbcqxJQ_9doBO2x8";
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        } catch(e) { console.log("Supabase error", e); }
+        if (window.supabase) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
 
-        let user = tg.initDataUnsafe?.user || { id: 999999, first_name: "O'yinchi", username: "player" };
+        let user = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) 
+            ? tg.initDataUnsafe.user 
+            : { id: Math.floor(Math.random() * 899999) + 100000, first_name: "O'yinchi", username: "player" };
 
         let balance = parseFloat(localStorage.getItem('kryze_balance')) || 0;
         let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
@@ -375,10 +379,9 @@
                     miner_counts: minerCounts
                 };
 
-                let { data, error } = await supabaseClient.from('users').upsert([userData], { onConflict: 'telegram_id' });
-                if (error) console.log('Upsert error:', error);
+                await supabaseClient.from('users').upsert(userData, { onConflict: 'telegram_id' });
             } catch (err) {
-                console.log('Sync catch error:', err);
+                console.log("Sync error:", err);
             }
         }
 
@@ -392,7 +395,6 @@
             }
 
             try {
-                // Avval o'zimizning ma'lumotlarni saqlaymiz
                 await syncWithDatabase();
 
                 let { data, error } = await supabaseClient
@@ -402,8 +404,7 @@
                     .limit(100);
 
                 if (error) {
-                    console.log('Leaderboard error:', error);
-                    container.innerHTML = "Xatolik: " + (error.message || "Reyting olinmadi");
+                    container.innerHTML = "Xatolik: " + error.message;
                     return;
                 }
 
@@ -429,7 +430,7 @@
 
                 container.innerHTML = html;
             } catch (err) {
-                container.innerHTML = "Reytingni yuklashda xatolik bo'ldi.";
+                container.innerHTML = "Reytingni yuklab bo'lmadi.";
             }
         }
 
