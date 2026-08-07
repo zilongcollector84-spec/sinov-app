@@ -19,7 +19,7 @@
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 15px;
-            padding-bottom: 80px; /* Menyu uchun joy */
+            padding-bottom: 85px;
             margin: 0;
             overflow-y: auto;
         }
@@ -55,7 +55,6 @@
             transform: scale(0.95);
         }
         
-        /* Sahifalar boshqaruvi */
         .tab-content {
             display: none;
         }
@@ -63,17 +62,19 @@
             display: block;
         }
 
-        /* Card va List uslublari */
         .card {
             background: #1e293b;
             border: 1px solid #334155;
             border-radius: 12px;
             padding: 12px;
             margin-bottom: 10px;
+            text-align: left;
+        }
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            text-align: left;
+            cursor: pointer;
         }
         .card-info {
             font-size: 13px;
@@ -87,6 +88,28 @@
         .card-sub {
             color: #94a3b8;
             font-size: 12px;
+        }
+
+        /* Akkorion (Group/Sub-items) */
+        .miner-details {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #334155;
+        }
+        .miner-details.open {
+            display: block;
+        }
+        .sub-miner-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
         }
 
         button.btn {
@@ -106,7 +129,6 @@
             opacity: 0.8;
         }
 
-        /* Pastki Menyu */
         .navbar {
             position: fixed;
             bottom: 0;
@@ -151,14 +173,13 @@
 </head>
 <body>
 
-    <!-- Yuqori Balans Card (Barcha sahifalarda ko'rinadi) -->
     <div class="balance-card">
         <div>Balansingiz:</div>
         <div class="coin-amount" id="balance">0</div>
         <small>Mining tezligi: <span id="cps">0</span> koin/sek</small>
     </div>
 
-    <!-- 1. BOSH SAHIFA (TAP) -->
+    <!-- 1. BOSH SAHIFA -->
     <div id="tab-home" class="tab-content active">
         <div class="tap-btn" onclick="tapCoin()">TAP!</div>
         
@@ -181,7 +202,7 @@
         <div id="my_miners_list"></div>
     </div>
 
-    <!-- 4. VAZIFALAR (XAZINA / TASKS) -->
+    <!-- 4. VAZIFALAR -->
     <div id="tab-tasks" class="tab-content">
         <h3 style="text-align: left; color: #cbd5e1; margin-bottom: 10px;">📋 Vazifalar</h3>
         <div class="balance-card" style="text-align: center; padding: 30px 10px;">
@@ -191,7 +212,7 @@
         </div>
     </div>
 
-    <!-- PASTKI NAVIGASIYA MENYUSI -->
+    <!-- PASTKI NAVIGATSIYA MENYUSI -->
     <div class="navbar">
         <div class="nav-item active" onclick="switchTab('home', this)">
             <span class="nav-icon">🪙</span>
@@ -218,7 +239,6 @@
         let balance = parseFloat(localStorage.getItem('kryze_balance')) || 0;
         let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
 
-        // 4 xil Maynerlar sozlamalari
         const shopConfig = [
             { id: 1, name: "Kichik Mayner", price: 10000, cps: 0.1 },
             { id: 2, name: "O'rta Mayner", price: 25000, cps: 0.3 },
@@ -226,10 +246,8 @@
             { id: 4, name: "Super Mayner", price: 100000, cps: 1.5 }
         ];
 
-        // Sotib olingan maynerlar ro'yxati
         let myMiners = JSON.parse(localStorage.getItem('kryze_my_miners')) || [];
 
-        // Sahifalarni almashtirish (Tabs)
         function switchTab(tabName, el) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -241,14 +259,12 @@
             if (tabName === 'my-miners') renderMyMiners();
         }
 
-        // Umumiy CPS (Mining tezligi)
         function getTotalCPS() {
             let total = 0;
             myMiners.forEach(m => total += m.cps);
             return parseFloat(total.toFixed(2));
         }
 
-        // Mayner sotib olish
         function buyMiner(shopId) {
             let item = shopConfig.find(s => s.id === shopId);
             if (!item) return;
@@ -256,7 +272,6 @@
             if (balance >= item.price) {
                 balance -= item.price;
 
-                // Har bir sotib olingan mayner alohida obyekt sifatida saqlanadi
                 let countOfType = myMiners.filter(m => m.shopId === shopId).length + 1;
                 let newMiner = {
                     id: Date.now() + Math.random(),
@@ -275,26 +290,27 @@
             }
         }
 
-        // Do'kon ro'yxatini chiqarish
         function renderShop() {
             let container = document.getElementById('shop_list');
             let html = '';
             shopConfig.forEach(item => {
                 html += `
                     <div class="card">
-                        <div class="card-info">
-                            <div class="card-title">${item.name}</div>
-                            <div class="card-sub">Tezlik: <strong style="color: #38bdf8;">+${item.cps} koin/sek</strong></div>
-                            <div class="card-sub">Narxi: <strong style="color: #f59e0b;">${item.price.toLocaleString()}</strong> koin</div>
+                        <div class="card-header">
+                            <div class="card-info">
+                                <div class="card-title">${item.name}</div>
+                                <div class="card-sub">Tezlik: <strong style="color: #38bdf8;">+${item.cps} koin/sek</strong></div>
+                                <div class="card-sub">Narxi: <strong style="color: #f59e0b;">${item.price.toLocaleString()}</strong> koin</div>
+                            </div>
+                            <button class="btn btn-buy" onclick="buyMiner(${item.id})">Sotib olish</button>
                         </div>
-                        <button class="btn btn-buy" onclick="buyMiner(${item.id})">Sotib olish</button>
                     </div>
                 `;
             });
             container.innerHTML = html;
         }
 
-        // Mening Maynerlarim ro'yxatini chiqarish
+        // Mening Maynerlarim - Guruhlangan menyu ko'rinishi
         function renderMyMiners() {
             let container = document.getElementById('my_miners_list');
             if (myMiners.length === 0) {
@@ -303,21 +319,55 @@
             }
 
             let html = '';
-            myMiners.forEach(m => {
-                html += `
-                    <div class="card">
-                        <div class="card-info">
-                            <div class="card-title">🚜 ${m.name}</div>
-                            <div class="card-sub">Ishlab chiqarish: <strong style="color: #38bdf8;">+${m.cps} koin/sek</strong></div>
+            shopConfig.forEach(type => {
+                let minersOfType = myMiners.filter(m => m.shopId === type.id);
+                if (minersOfType.length > 0) {
+                    let totalCpsForGroup = (minersOfType.length * type.cps).toFixed(2);
+                    html += `
+                        <div class="card">
+                            <div class="card-header" onclick="toggleAccordion('group-${type.id}')">
+                                <div class="card-info">
+                                    <div class="card-title">🚜 ${type.name}</div>
+                                    <div class="card-sub"><strong style="color: #38bdf8;">${minersOfType.length} dona faol</strong> — Har biri ${type.cps} koin/sek</div>
+                                    <div class="card-sub" style="margin-top: 2px;">Umumiy: <strong style="color: #4ade80;">+${totalCpsForGroup} koin/sek</strong></div>
+                                </div>
+                                <span id="arrow-group-${type.id}" style="color: #38bdf8; font-size: 18px;">▼</span>
+                            </div>
+                            
+                            <div id="group-${type.id}" class="miner-details">
+                    `;
+                    
+                    minersOfType.forEach(m => {
+                        html += `
+                            <div class="sub-miner-item">
+                                <div>${m.name}</div>
+                                <div style="color: #38bdf8;">+${m.cps} koin/sek</div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
                         </div>
-                        <span style="font-size: 11px; background: #334155; padding: 4px 8px; border-radius: 6px; color: #4ade80;">Faol</span>
-                    </div>
-                `;
+                    `;
+                }
             });
             container.innerHTML = html;
         }
 
-        // Oflayn daromadni hisoblash
+        // Menyu ochilib-yopilishi uchun (Accordion)
+        function toggleAccordion(id) {
+            let el = document.getElementById(id);
+            let arrow = document.getElementById(`arrow-${id}`);
+            if (el.classList.contains('open')) {
+                el.classList.remove('open');
+                arrow.innerText = '▼';
+            } else {
+                el.classList.add('open');
+                arrow.innerText = '▲';
+            }
+        }
+
         function initOfflineEarnings() {
             let now = Date.now();
             let totalCps = getTotalCPS();
@@ -353,7 +403,6 @@
             document.getElementById('cps').innerText = getTotalCPS();
         }
 
-        // Onlayn avto-mining (kasr sonlar aniq qo'shilishi uchun)
         setInterval(() => {
             let totalCps = getTotalCPS();
             if (totalCps > 0) {
