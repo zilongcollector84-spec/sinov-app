@@ -110,13 +110,25 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Xotiradan saqlangan ma'lumotlarni yuklash (bo'lmasa 0)
-        let balance = parseInt(localStorage.getItem('kryze_balance')) || 0;
-        let cps = parseInt(localStorage.getItem('kryze_cps')) || 0;
+        let balance = 0;
+        let cps = 0;
+
+        // Telegram Bulut xotirasidan ma'lumotni yuklash
+        if (tg.CloudStorage) {
+            tg.CloudStorage.getItems(['kryze_balance', 'kryze_cps'], (err, values) => {
+                if (!err) {
+                    balance = parseInt(values.kryze_balance) || 0;
+                    cps = parseInt(values.kryze_cps) || 0;
+                    updateDisplay();
+                }
+            });
+        }
 
         function saveData() {
-            localStorage.setItem('kryze_balance', balance);
-            localStorage.setItem('kryze_cps', cps);
+            if (tg.CloudStorage) {
+                tg.CloudStorage.setItem('kryze_balance', balance.toString());
+                tg.CloudStorage.setItem('kryze_cps', cps.toString());
+            }
         }
 
         function tapCoin() {
@@ -159,7 +171,6 @@
             alert("So'rov yuborildi! Balans: " + balance);
         }
 
-        // Dastlabki balans va tezlikni ekranga chiqarish
         updateDisplay();
     </script>
 </body>
