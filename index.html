@@ -117,9 +117,6 @@
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
         }
-        button.btn:active {
-            opacity: 0.8;
-        }
 
         .leader-item {
             background: rgba(30, 41, 59, 0.6);
@@ -178,8 +175,6 @@
             color: white;
             font-size: 14px;
             text-align: center;
-            -webkit-user-select: text;
-            user-select: text;
         }
     </style>
 </head>
@@ -211,7 +206,7 @@
     <!-- 4. REYTING -->
     <div id="tab-leaderboard" class="tab-content">
         <h3 style="text-align: left; color: #f8fafc; margin-bottom: 12px;">🏆 Top 100 O'yinchilar</h3>
-        <div id="leaderboard_list">Kutilmoqda...</div>
+        <div id="leaderboard_list">Yuklanmoqda...</div>
     </div>
 
     <!-- 5. VAZIFALAR -->
@@ -251,16 +246,17 @@
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand();
+        try { tg.expand(); } catch(e){}
 
-        let supabase = null;
+        // SUPABASE CLIENT
+        let supabaseClient = null;
         try {
-            const SUPABASE_URL = "https://sxfbkkdulcxirrndwomg.supabase.co";
-            const SUPABASE_ANON_KEY = "Sb_publishable_xqv6g1v0Gixqb-HhbcqxJQ_9doBO2x8";
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch(e) {
-            console.log("Supabase ulana olmadi");
-        }
+            if (window.supabase) {
+                const SUPABASE_URL = "https://sxfbkkdulcxirrndwomg.supabase.co";
+                const SUPABASE_ANON_KEY = "Sb_publishable_xqv6g1v0Gixqb-HhbcqxJQ_9doBO2x8";
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch(e) { console.log("Supabase error", e); }
 
         let user = tg.initDataUnsafe?.user || { id: 999999, first_name: "O'yinchi", username: "player" };
 
@@ -278,11 +274,15 @@
         let minerCounts = JSON.parse(localStorage.getItem('kryze_miner_counts')) || { 1: 0, 2: 0, 3: 0, 4: 0 };
 
         function switchTab(tabName, el) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            let tabs = document.querySelectorAll('.tab-content');
+            let navs = document.querySelectorAll('.nav-item');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            navs.forEach(nav => nav.classList.remove('active'));
 
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-            el.classList.add('active');
+            let targetTab = document.getElementById('tab-' + tabName);
+            if (targetTab) targetTab.classList.add('active');
+            if (el) el.classList.add('active');
 
             if (tabName === 'shop') renderShop();
             if (tabName === 'my-miners') renderMyMiners();
@@ -309,9 +309,9 @@
                 saveLocalState();
                 updateDisplay();
                 renderShop();
-                alert(`${item.name} sotib olindi! 🎉`);
+                alert(item.name + " sotib olindi! 🎉");
             } else {
-                alert(`Mablag' yetarli emas! Narxi: ${item.price.toLocaleString()} koin`);
+                alert("Mablag' yetarli emas! Narxi: " + item.price.toLocaleString() + " koin");
             }
         }
 
@@ -320,18 +320,16 @@
             let html = '';
             shopConfig.forEach(item => {
                 let owned = minerCounts[item.id] || 0;
-                html += `
-                    <div class="card">
-                        <img src="${item.image}" class="card-img" alt="${item.name}">
-                        <div class="card-info">
-                            <div class="card-title">${item.name}</div>
-                            <div class="card-sub">Tezlik: <strong style="color: #38bdf8;">+${item.cps} koin/sek</strong></div>
-                            <div class="card-sub">Narxi: <strong style="color: #f59e0b;">${item.price.toLocaleString()}</strong> koin</div>
-                            <div class="card-sub" style="color: #4ade80; margin-top:2px;">Sizda bor: <strong>${owned} dona</strong></div>
-                        </div>
-                        <button class="btn btn-buy" onclick="buyMiner(${item.id})">Olish</button>
-                    </div>
-                `;
+                html += '<div class="card">' +
+                    '<img src="' + item.image + '" class="card-img" alt="">' +
+                    '<div class="card-info">' +
+                        '<div class="card-title">' + item.name + '</div>' +
+                        '<div class="card-sub">Tezlik: <strong style="color: #38bdf8;">+' + item.cps + ' koin/sek</strong></div>' +
+                        '<div class="card-sub">Narxi: <strong style="color: #f59e0b;">' + item.price.toLocaleString() + '</strong> koin</div>' +
+                        '<div class="card-sub" style="color: #4ade80; margin-top:2px;">Sizda bor: <strong>' + owned + ' dona</strong></div>' +
+                    '</div>' +
+                    '<button class="btn btn-buy" onclick="buyMiner(' + item.id + ')">Olish</button>' +
+                '</div>';
             });
             container.innerHTML = html;
         }
@@ -346,31 +344,29 @@
                 if (count > 0) {
                     hasAnyMiner = true;
                     let totalCps = parseFloat((count * item.cps).toFixed(2));
-                    html += `
-                        <div class="card">
-                            <img src="${item.image}" class="card-img" alt="${item.name}">
-                            <div class="card-info">
-                                <div class="card-title">${item.name}</div>
-                                <div class="card-sub">Soni: <strong style="color: #f59e0b;">${count} dona</strong></div>
-                                <div class="card-sub">Umumiy tezlik: <strong style="color: #38bdf8;">+${totalCps} koin/sek</strong></div>
-                            </div>
-                            <span style="font-size: 11px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; padding: 4px 8px; border-radius: 6px; color: #34d399;">Faol</span>
-                        </div>
-                    `;
+                    html += '<div class="card">' +
+                        '<img src="' + item.image + '" class="card-img" alt="">' +
+                        '<div class="card-info">' +
+                            '<div class="card-title">' + item.name + '</div>' +
+                            '<div class="card-sub">Soni: <strong style="color: #f59e0b;">' + count + ' dona</strong></div>' +
+                            '<div class="card-sub">Umumiy tezlik: <strong style="color: #38bdf8;">+' + totalCps + ' koin/sek</strong></div>' +
+                        '</div>' +
+                        '<span style="font-size: 11px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; padding: 4px 8px; border-radius: 6px; color: #34d399;">Faol</span>' +
+                    '</div>';
                 }
             });
 
             if (!hasAnyMiner) {
-                container.innerHTML = `<div class="balance-card" style="color: #64748b;">Sizda hali hech qanday mayner yo'q. Do'kondan sotib oling!</div>`;
+                container.innerHTML = '<div class="balance-card" style="color: #64748b;">Sizda hali hech qanday mayner yo\'q. Do\'kondan sotib oling!</div>';
             } else {
                 container.innerHTML = html;
             }
         }
 
         async function syncWithDatabase() {
-            if (!supabase || !user || !user.id) return;
+            if (!supabaseClient || !user || !user.id) return;
             try {
-                await supabase.from('users').upsert({
+                await supabaseClient.from('users').upsert({
                     telegram_id: user.id,
                     first_name: user.first_name || 'Foydalanuvchi',
                     username: user.username || '',
@@ -378,52 +374,48 @@
                     cps: getTotalCPS(),
                     miner_counts: minerCounts
                 }, { onConflict: 'telegram_id' });
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) {}
         }
 
         async function loadLeaderboard() {
             let container = document.getElementById('leaderboard_list');
             container.innerHTML = "Yuklanmoqda...";
 
-            if (!supabase) {
-                container.innerHTML = "Baza ulana olmadi.";
+            if (!supabaseClient) {
+                container.innerHTML = "Lokal rejimda ishlamoqda.";
                 return;
             }
 
             try {
-                let { data, error } = await supabase
+                let res = await supabaseClient
                     .from('users')
                     .select('first_name, balance, cps')
                     .order('balance', { ascending: false })
                     .limit(100);
 
-                if (error || !data) {
-                    container.innerHTML = "Reyting xatolik tufayli yuklanmadi.";
+                if (res.error || !res.data) {
+                    container.innerHTML = "Reyting yuklanmadi.";
                     return;
                 }
 
                 let html = '';
-                data.forEach((item, index) => {
-                    let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
-                    html += `
-                        <div class="leader-item">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="rank">${medal}</span>
-                                <div style="text-align: left;">
-                                    <div style="font-weight: bold; color: #f8fafc;">${item.first_name}</div>
-                                    <div style="font-size: 11px; color: #94a3b8;">${item.cps} koin/sek</div>
-                                </div>
-                            </div>
-                            <div style="font-weight: bold; color: #38bdf8;">${Math.floor(item.balance).toLocaleString()} 🪙</div>
-                        </div>
-                    `;
+                res.data.forEach((item, index) => {
+                    let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '#' + (index + 1);
+                    html += '<div class="leader-item">' +
+                        '<div style="display: flex; align-items: center; gap: 10px;">' +
+                            '<span class="rank">' + medal + '</span>' +
+                            '<div style="text-align: left;">' +
+                                '<div style="font-weight: bold; color: #f8fafc;">' + (item.first_name || 'O\'yinchi') + '</div>' +
+                                '<div style="font-size: 11px; color: #94a3b8;">' + item.cps + ' koin/sek</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div style="font-weight: bold; color: #38bdf8;">' + Math.floor(item.balance).toLocaleString() + ' 🪙</div>' +
+                    '</div>';
                 });
 
                 container.innerHTML = html || "Hali o'yinchilar yo'q.";
             } catch (err) {
-                container.innerHTML = "Xatolik yuz berdi.";
+                container.innerHTML = "Reyting olishda xatolik.";
             }
         }
 
@@ -461,7 +453,7 @@
                     updateDisplay();
                     saveLocalState();
                     setTimeout(() => {
-                        alert(`Siz yo'qligingizda maynerlaringiz ${earned} koin ishlab berdi! 🚀`);
+                        alert("Siz yo'qligingizda maynerlaringiz " + earned + " koin ishlab berdi! 🚀");
                     }, 500);
                 }
             }
@@ -500,6 +492,7 @@
         window.addEventListener('pagehide', saveLocalState);
         window.addEventListener('beforeunload', saveLocalState);
 
+        updateDisplay();
         initOfflineEarnings();
         syncWithDatabase();
     </script>
