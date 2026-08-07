@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kryze Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            user-select: none;
+        }
+        .balance-card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        .coin-amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: #f59e0b;
+        }
+        .tap-btn {
+            background: radial-gradient(circle, #f59e0b 0%, #d97706 100%);
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 4px solid #fef3c7;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tap-btn:active {
+            transform: scale(0.95);
+        }
+        .action-card {
+            background: #1e293b;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        button.btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="balance-card">
+        <div>Balansingiz:</div>
+        <div class="coin-amount" id="balance">0</div>
+        <small>Mining tezligi: <span id="cps">0</span> koin/sek</small>
+    </div>
+
+    <div class="tap-btn" onclick="tapCoin()">TAP!</div>
+
+    <div class="action-card">
+        <div>
+            <strong>Mayner Lv.1</strong><br>
+            <small>Narxi: 50 koin (+1 koin/sek)</small>
+        </div>
+        <button class="btn" onclick="buyMiner()">Sotib olish</button>
+    </div>
+
+    <div class="balance-card">
+        <h3>Pulni chiqarish</h3>
+        <input type="text" id="cardInput" placeholder="Karta/Hamyon raqami">
+        <button class="btn" style="width: 95%; margin-top: 10px; background: #16a34a;" onclick="withdraw()">Chiqarib olishga so'rov</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let balance = 0;
+        let cps = 0;
+
+        function tapCoin() {
+            balance += 1;
+            updateDisplay();
+        }
+
+        function buyMiner() {
+            if (balance >= 50) {
+                balance -= 50;
+                cps += 1;
+                updateDisplay();
+            } else {
+                alert("Mablag' yetarli emas!");
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('balance').innerText = balance;
+            document.getElementById('cps').innerText = cps;
+        }
+
+        setInterval(() => {
+            if (cps > 0) {
+                balance += cps;
+                updateDisplay();
+            }
+        }, 1000);
+
+        function withdraw() {
+            let card = document.getElementById('cardInput').value;
+            if (card.length < 5) {
+                alert("Karta raqamini to'g'ri kiriting!");
+                return;
+            }
+            tg.sendData(JSON.stringify({ action: "withdraw", amount: balance, card: card }));
+            alert("So'rov yuborildi! Balans: " + balance);
+        }
+    </script>
+</body>
+</html>
