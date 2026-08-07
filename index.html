@@ -14,39 +14,44 @@
             box-sizing: border-box;
         }
         body {
-            background-color: #0f172a;
+            background-color: #0b0f19;
             color: #ffffff;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
             padding: 15px;
-            padding-bottom: 80px;
+            padding-bottom: 90px;
             margin: 0;
             overflow-y: auto;
         }
+        
+        /* Glassmorphism Balans Card */
         .balance-card {
-            background: #1e293b;
-            padding: 15px;
-            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 18px;
+            border-radius: 16px;
             margin-bottom: 15px;
-            border: 1px solid #334155;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
         .coin-amount {
-            font-size: 32px;
-            font-weight: bold;
-            color: #f59e0b;
+            font-size: 34px;
+            font-weight: 800;
+            color: #38bdf8;
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
         }
         .tap-btn {
-            background: radial-gradient(circle, #f59e0b 0%, #d97706 100%);
+            background: radial-gradient(circle, #38bdf8 0%, #1e40af 100%);
             width: 180px;
             height: 180px;
             border-radius: 50%;
-            border: 4px solid #fef3c7;
+            border: 4px solid #93c5fd;
             color: white;
             font-size: 26px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);
-            margin: 30px auto;
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+            margin: 40px auto;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -62,58 +67,73 @@
             display: block;
         }
 
+        /* 3D Rasm va Card Stili */
         .card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 10px;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 15px;
             text-align: left;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .card-img {
+            width: 65px;
+            height: 65px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.3));
+            flex-shrink: 0;
         }
         .card-info {
+            flex-grow: 1;
             font-size: 13px;
         }
         .card-title {
-            font-weight: bold;
+            font-weight: 700;
             color: #f8fafc;
-            font-size: 15px;
+            font-size: 16px;
             margin-bottom: 4px;
         }
         .card-sub {
             color: #94a3b8;
             font-size: 12px;
+            margin-bottom: 2px;
         }
 
         button.btn {
             background: #2563eb;
             color: white;
             border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             font-size: 12px;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
         }
         button.btn-buy {
-            background: #16a34a;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
         }
         button.btn:active {
             opacity: 0.8;
         }
 
+        /* Navbar */
         .navbar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #0f172a;
-            border-top: 1px solid #334155;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-around;
-            padding: 10px 0;
+            padding: 12px 0;
             z-index: 100;
         }
         .nav-item {
@@ -130,7 +150,7 @@
             font-weight: bold;
         }
         .nav-icon {
-            font-size: 18px;
+            font-size: 20px;
         }
 
         input {
@@ -152,9 +172,9 @@
 
     <!-- Yuqori Balans Card -->
     <div class="balance-card">
-        <div>Balansingiz:</div>
+        <div style="color: #94a3b8; font-size: 13px;">Balansingiz:</div>
         <div class="coin-amount" id="balance">0</div>
-        <small>Mining tezligi: <span id="cps">0</span> koin/sek</small>
+        <small style="color: #cbd5e1;">Mining tezligi: <span id="cps" style="color:#38bdf8; font-weight:bold;">0</span> koin/sek</small>
     </div>
 
     <!-- 1. BOSH SAHIFA (TAP) -->
@@ -164,19 +184,19 @@
 
     <!-- 2. MAYNERLAR DO'KONI -->
     <div id="tab-shop" class="tab-content">
-        <h3 style="text-align: left; color: #cbd5e1; margin-bottom: 10px;">⚡ Maynerlar Do'koni</h3>
+        <h3 style="text-align: left; color: #f8fafc; margin-bottom: 12px;">⚡ Maynerlar Do'koni</h3>
         <div id="shop_list"></div>
     </div>
 
     <!-- 3. MENING MAYNERLARIM -->
     <div id="tab-my-miners" class="tab-content">
-        <h3 style="text-align: left; color: #cbd5e1; margin-bottom: 10px;">🚜 Mening Maynerlarim</h3>
+        <h3 style="text-align: left; color: #f8fafc; margin-bottom: 12px;">🚜 Mening Maynerlarim</h3>
         <div id="my_miners_list"></div>
     </div>
 
     <!-- 4. VAZIFALAR (TASKS & PROMOCODE) -->
     <div id="tab-tasks" class="tab-content">
-        <h3 style="text-align: left; color: #cbd5e1; margin-bottom: 10px;">📋 Vazifalar</h3>
+        <h3 style="text-align: left; color: #f8fafc; margin-bottom: 12px;">📋 Vazifalar</h3>
         
         <div class="balance-card" style="text-align: left;">
             <div style="font-weight: bold; font-size: 16px; color: #38bdf8; margin-bottom: 5px;">🎁 Promokod kiritish</div>
@@ -214,16 +234,17 @@
         let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
         let usedPromos = JSON.parse(localStorage.getItem('kryze_used_promos')) || [];
 
+        // Maynerlar va ularning rasmlari (Siz GitHub'ga yuklaganingizdan so'ng 'image' xossasiga o'zingizning rasm manzilingizni qo'yishingiz mumkin)
         const shopConfig = [
-            { id: 1, name: "Kichik Mayner", price: 10000, cps: 0.1 },
-            { id: 2, name: "O'rta Mayner", price: 25000, cps: 0.3 },
-            { id: 3, name: "Katta Mayner", price: 50000, cps: 0.7 },
-            { id: 4, name: "Super Mayner", price: 100000, cps: 1.5 }
+            { id: 1, name: "Kichik Mayner", price: 10000, cps: 0.1, image: "https://cdn-icons-png.flaticon.com/512/6298/6298533.png" },
+            { id: 2, name: "O'rta Mayner", price: 25000, cps: 0.3, image: "https://cdn-icons-png.flaticon.com/512/6298/6298583.png" },
+            { id: 3, name: "Katta Mayner", price: 50000, cps: 0.7, image: "https://cdn-icons-png.flaticon.com/512/2091/2091665.png" },
+            { id: 4, name: "Super Mayner", price: 100000, cps: 1.5, image: "https://cdn-icons-png.flaticon.com/512/3135/3135706.png" }
         ];
 
         let minerCounts = JSON.parse(localStorage.getItem('kryze_miner_counts')) || { 1: 0, 2: 0, 3: 0, 4: 0 };
 
-        // ESKI SOTIB OLINGAN MAYNERLARNI YANGI FORMAGA O'TKAZISH (MIGRATION)
+        // Eskilarini yangisiga moslash (Migration)
         let oldMiners = JSON.parse(localStorage.getItem('kryze_my_miners')) || [];
         if (oldMiners.length > 0) {
             oldMiners.forEach(m => {
@@ -231,7 +252,7 @@
                     minerCounts[m.shopId] += 1;
                 }
             });
-            localStorage.removeItem('kryze_my_miners'); // Eskisini tozalab tashlaymiz
+            localStorage.removeItem('kryze_my_miners');
             localStorage.setItem('kryze_miner_counts', JSON.stringify(minerCounts));
         }
 
@@ -279,13 +300,14 @@
                 let owned = minerCounts[item.id] || 0;
                 html += `
                     <div class="card">
+                        <img src="${item.image}" class="card-img" alt="${item.name}">
                         <div class="card-info">
                             <div class="card-title">${item.name}</div>
                             <div class="card-sub">Tezlik: <strong style="color: #38bdf8;">+${item.cps} koin/sek</strong></div>
                             <div class="card-sub">Narxi: <strong style="color: #f59e0b;">${item.price.toLocaleString()}</strong> koin</div>
                             <div class="card-sub" style="color: #4ade80; margin-top:2px;">Sizda bor: <strong>${owned} dona</strong></div>
                         </div>
-                        <button class="btn btn-buy" onclick="buyMiner(${item.id})">Sotib olish</button>
+                        <button class="btn btn-buy" onclick="buyMiner(${item.id})">Olish</button>
                     </div>
                 `;
             });
@@ -304,12 +326,13 @@
                     let totalCps = parseFloat((count * item.cps).toFixed(2));
                     html += `
                         <div class="card">
+                            <img src="${item.image}" class="card-img" alt="${item.name}">
                             <div class="card-info">
-                                <div class="card-title">🚜 ${item.name}</div>
+                                <div class="card-title">${item.name}</div>
                                 <div class="card-sub">Soni: <strong style="color: #f59e0b;">${count} dona</strong></div>
                                 <div class="card-sub">Umumiy tezlik: <strong style="color: #38bdf8;">+${totalCps} koin/sek</strong></div>
                             </div>
-                            <span style="font-size: 11px; background: #334155; padding: 4px 8px; border-radius: 6px; color: #4ade80;">Faol</span>
+                            <span style="font-size: 11px; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; padding: 4px 8px; border-radius: 6px; color: #34d399;">Faol</span>
                         </div>
                     `;
                 }
