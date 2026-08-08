@@ -21,14 +21,16 @@ let totalEarned = parseFloat(localStorage.getItem('kryze_total_earned')) || bala
 let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
 let usedPromos = JSON.parse(localStorage.getItem('kryze_used_promos')) || [];
 
+// YANGI MAYNER SHU YERGA QO'SHILDI (id: 0)
 const shopConfig = [
+    { id: 0, name: "Boshlang'ich Mayner", price: 5000, cps: 0.03, image: "https://cdn-icons-png.flaticon.com/512/2991/2991106.png" },
     { id: 1, name: "Kichik Mayner", price: 10000, cps: 0.1, image: "https://cdn-icons-png.flaticon.com/512/6298/6298533.png" },
     { id: 2, name: "O'rta Mayner", price: 25000, cps: 0.3, image: "https://cdn-icons-png.flaticon.com/512/6298/6298583.png" },
     { id: 3, name: "Katta Mayner", price: 50000, cps: 0.7, image: "https://cdn-icons-png.flaticon.com/512/2091/2091665.png" },
     { id: 4, name: "Super Mayner", price: 100000, cps: 1.5, image: "https://cdn-icons-png.flaticon.com/512/3135/3135706.png" }
 ];
 
-let minerCounts = JSON.parse(localStorage.getItem('kryze_miner_counts')) || { 1: 0, 2: 0, 3: 0, 4: 0 };
+let minerCounts = JSON.parse(localStorage.getItem('kryze_miner_counts')) || { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
 
 function switchTab(tabName, el) {
     let tabs = document.querySelectorAll('.tab-content');
