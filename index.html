@@ -15,9 +15,9 @@
             box-sizing: border-box;
         }
         body {
-            background-color: #0b0f19;
+            background-color: #060b17;
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             text-align: center;
             padding: 15px;
             padding-bottom: 90px;
@@ -25,17 +25,16 @@
             overflow-y: auto;
         }
         
-        /* Yuqori panel va Profil tugmasi */
         .top-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 15px;
         }
-        .profile-btn {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 6px 12px;
+        .profile-top-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 6px 14px;
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -44,55 +43,20 @@
             color: #f8fafc;
             font-size: 13px;
             font-weight: 600;
+            backdrop-filter: blur(10px);
         }
-        .profile-btn:active {
+        .profile-top-btn:active {
             transform: scale(0.95);
         }
 
-        /* Profil Modal Oynasi */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            background: #1e293b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 20px;
-            width: 85%;
-            max-width: 320px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-        .avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: #38bdf8;
-            color: #0f172a;
-            font-size: 32px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px auto;
-            border: 3px solid #93c5fd;
-        }
-
         .balance-card {
-            background: rgba(30, 41, 59, 0.7);
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
             backdrop-filter: blur(10px);
             padding: 18px;
-            border-radius: 16px;
+            border-radius: 20px;
             margin-bottom: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
         .coin-amount {
             font-size: 34px;
@@ -195,6 +159,77 @@
             color: #f59e0b;
         }
 
+        /* --- RASMDAGIDEK PROFIL STILI --- */
+        .profile-container {
+            text-align: left;
+        }
+        .profile-header {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-align: left;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(22, 33, 62, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 14px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .stat-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        
+        .section-title {
+            color: #facc15;
+            font-weight: 800;
+            font-size: 16px;
+            margin: 20px 0 12px 0;
+        }
+        .level-row {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .level-tag {
+            font-weight: 800;
+            color: #f8fafc;
+            font-size: 14px;
+        }
+        .level-reward {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
         .navbar {
             position: fixed;
             bottom: 0;
@@ -205,7 +240,7 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-around;
-            padding: 12px 0;
+            padding: 10px 0;
             z-index: 100;
         }
         .nav-item {
@@ -240,14 +275,15 @@
 </head>
 <body>
 
-    <!-- Yuqoridagi profil paneli -->
+    <!-- Top Bar -->
     <div class="top-bar">
-        <div class="profile-btn" onclick="openProfile()">
+        <div class="profile-top-btn" onclick="openProfileTab()">
             <span>👤</span>
             <span id="topBarName">O'yinchi</span>
         </div>
     </div>
 
+    <!-- Balance Card -->
     <div class="balance-card">
         <div style="color: #94a3b8; font-size: 13px;">Balansingiz:</div>
         <div class="coin-amount" id="balance">0</div>
@@ -288,53 +324,90 @@
         </div>
     </div>
 
-    <!-- PROFIL MODAL OYNASI -->
-    <div id="profileModal" class="modal">
-        <div class="modal-content">
-            <div class="avatar" id="profAvatar">O</div>
-            <h3 id="profName" style="margin: 0 0 4px 0; color: #f8fafc;">O'yinchi</h3>
-            <div id="profUsername" style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">@username</div>
-            
-            <div style="background: #0f172a; padding: 12px; border-radius: 12px; font-size: 13px; text-align: left; margin-bottom: 15px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
-                    <span style="color:#94a3b8;">ID:</span>
-                    <strong id="profId" style="color:#f8fafc;">000000</strong>
+    <!-- 6. PROFIL SAHIFASI (RASMDAGI DIZAYN) -->
+    <div id="tab-profile" class="tab-content">
+        <div class="profile-container">
+            <div class="profile-header">Profil</div>
+
+            <div class="grid-2">
+                <div class="stat-card">
+                    <div class="stat-title">Maynerlar</div>
+                    <div class="stat-value" id="profMinersCount" style="color: #38bdf8;">0</div>
                 </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
-                    <span style="color:#94a3b8;">Mining tezligi:</span>
-                    <strong id="profCps" style="color:#38bdf8;">0 koin/sek</strong>
-                </div>
-                <div style="display:flex; justify-content:space-between;">
-                    <span style="color:#94a3b8;">Jami ishlangan:</span>
-                    <strong id="profTotal" style="color:#f59e0b;">0 🪙</strong>
+                <div class="stat-card">
+                    <div class="stat-title">Tezlik</div>
+                    <div class="stat-value" id="profSpeed">0/s</div>
                 </div>
             </div>
 
-            <button class="btn" style="width: 100%; background: #475569;" onclick="closeProfile()">Yopish</button>
+            <div class="grid-2">
+                <div class="stat-card">
+                    <div class="stat-title">Foydalanuvchi</div>
+                    <div class="stat-value" id="profUserName" style="font-size: 15px;">O'yinchi</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Telegram ID</div>
+                    <div class="stat-value" id="profUserId" style="font-size: 15px; color: #f59e0b;">000000</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="stat-card">
+                    <div class="stat-title">Jami Ishlangan</div>
+                    <div class="stat-value" id="profTotalEarned" style="color: #4ade80;">0 🪙</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Tajriba (XP)</div>
+                    <div class="stat-value" id="profXP" style="color: #a855f7;">100 / 1000</div>
+                </div>
+            </div>
+
+            <div class="section-title">Daraja mukofotlari</div>
+
+            <div class="level-row">
+                <div class="level-tag">LVL 1</div>
+                <div class="level-reward">💵 5,000 koin</div>
+            </div>
+            <div class="level-row">
+                <div class="level-tag">LVL 2</div>
+                <div class="level-reward">💵 15,000 koin</div>
+            </div>
+            <div class="level-row">
+                <div class="level-tag">LVL 3</div>
+                <div class="level-reward">💵 50,000 koin</div>
+            </div>
+            <div class="level-row">
+                <div class="level-tag">LVL 4</div>
+                <div class="level-reward">💵 100,000 koin</div>
+            </div>
+            <div class="level-row">
+                <div class="level-tag">LVL 5</div>
+                <div class="level-reward">💎 1,000,000 koin</div>
+            </div>
         </div>
     </div>
 
     <!-- NAVBAR -->
     <div class="navbar">
-        <div class="nav-item active" onclick="switchTab('home', this)">
+        <div class="nav-item active" id="nav-home" onclick="switchTab('home', this)">
             <span class="nav-icon">🪙</span>
             <span>Bosh sahifa</span>
         </div>
-        <div class="nav-item" onclick="switchTab('shop', this)">
+        <div class="nav-item" id="nav-shop" onclick="switchTab('shop', this)">
             <span class="nav-icon">🛒</span>
             <span>Do'kon</span>
         </div>
-        <div class="nav-item" onclick="switchTab('my-miners', this)">
+        <div class="nav-item" id="nav-my-miners" onclick="switchTab('my-miners', this)">
             <span class="nav-icon">🚜</span>
             <span>Maynerlarim</span>
         </div>
-        <div class="nav-item" onclick="switchTab('leaderboard', this)">
+        <div class="nav-item" id="nav-leaderboard" onclick="switchTab('leaderboard', this)">
             <span class="nav-icon">🏆</span>
             <span>Reyting</span>
         </div>
-        <div class="nav-item" onclick="switchTab('tasks', this)">
-            <span class="nav-icon">📋</span>
-            <span>Vazifalar</span>
+        <div class="nav-item" id="nav-profile" onclick="switchTab('profile', this)">
+            <span class="nav-icon">👤</span>
+            <span>Profil</span>
         </div>
     </div>
 
