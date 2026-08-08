@@ -265,7 +265,6 @@
             : { id: Math.floor(Math.random() * 899999) + 100000, first_name: "O'yinchi", username: "player" };
 
         let balance = parseFloat(localStorage.getItem('kryze_balance')) || 0;
-        // Umumiy topilgan koinlar miqdori (agar ilgari saqlanmagan bo'lsa, balansga teng deb olinadi)
         let totalEarned = parseFloat(localStorage.getItem('kryze_total_earned')) || balance;
         let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
         let usedPromos = JSON.parse(localStorage.getItem('kryze_used_promos')) || [];
@@ -309,7 +308,7 @@
             if (!item) return;
 
             if (balance >= item.price) {
-                balance -= item.price; // Xariddan so'ng balans kamayadi, lekin totalEarned kamaymaydi!
+                balance -= item.price;
                 minerCounts[shopId] = (minerCounts[shopId] || 0) + 1;
 
                 saveLocalState();
@@ -377,9 +376,10 @@
                     first_name: user.first_name || 'O\'yinchi',
                     username: user.username || '',
                     balance: parseFloat(balance.toFixed(1)),
-                    total_earned: parseFloat(totalEarned.toFixed(1)), // Bazaga jami topilgan koin yuboriladi
+                    total_earned: parseFloat(totalEarned.toFixed(1)),
                     cps: getTotalCPS(),
-                    miner_counts: minerCounts
+                    miner_counts: minerCounts,
+                    last_active: Date.now()
                 };
 
                 await supabaseClient.from('users').upsert(userData, { onConflict: 'telegram_id' });
@@ -400,12 +400,9 @@
             try {
                 await syncWithDatabase();
 
-                // Endi saralash 'total_earned' (jami topilgan koin) bo'yicha ketadi
                 let { data, error } = await supabaseClient
                     .from('users')
-                    .select('first_name, balance, total_earned, cps')
-                    .order('total_earned', { ascending: false })
-                    .limit(100);
+                    .select('first_name, balance, total_earned, cps, last_active');
 
                 if (error) {
                     container.innerHTML = "Xatolik: " + error.message;
@@ -417,11 +414,33 @@
                     return;
                 }
 
+                let now = Date.now();
+
+                // Har bir foydalanuvchi oflayn bo'lgan vaqt uchun real-vaqtda koinlarni qo'shib hisoblaymiz
+                let processedData = data.map(item => {
+                    let cps = item.cps || 0;
+                    let lastActive = item.last_active || 0;
+                    let currentTotal = item.total_earned !== undefined && item.total_earned !== null ? item.total_earned : item.balance;
+
+                    if (cps > 0 && lastActive > 0) {
+                        let secondsOffline = Math.floor((now - lastActive) / 1000);
+                        if (secondsOffline > 0) {
+                            currentTotal += secondsOffline * cps;
+                        }
+                    }
+
+                    return {
+                        ...item,
+                        calculatedTotal: currentTotal
+                    };
+                });
+
+                // Hisoblangan real total bo'yicha kamayish tartibida saralaymiz
+                processedData.sort((a, b) => b.calculatedTotal - a.calculatedTotal);
+
                 let html = '';
-                data.forEach((item, index) => {
+                processedData.slice(0, 100).forEach((item, index) => {
                     let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '#' + (index + 1);
-                    // Agar bazada eski foydalanuvchida total_earned bo'lmasa, uning balansini ko'rsatamiz
-                    let totalVal = item.total_earned !== undefined && item.total_earned !== null ? item.total_earned : item.balance;
                     
                     html += '<div class="leader-item">' +
                         '<div style="display: flex; align-items: center; gap: 10px;">' +
@@ -432,7 +451,7 @@
                             '</div>' +
                         '</div>' +
                         '<div style="text-align: right;">' +
-                            '<div style="font-weight: bold; color: #38bdf8;">' + Math.floor(totalVal || 0).toLocaleString() + ' 🪙</div>' +
+                            '<div style="font-weight: bold; color: #38bdf8;">' + Math.floor(item.calculatedTotal || 0).toLocaleString() + ' 🪙</div>' +
                             '<div style="font-size: 10px; color: #64748b;">Jami ishlab topilgan</div>' +
                         '</div>' +
                     '</div>';
@@ -456,7 +475,7 @@
                     alert("Siz bu promokoddan foydalanib bo'lgansiz!");
                 } else {
                     balance += 100000;
-                    totalEarned += 100000; // Promokod ham jami daromadga qo'shiladi
+                    totalEarned += 100000;
                     usedPromos.push('pull');
                     saveLocalState();
                     updateDisplay();
@@ -476,7 +495,7 @@
                 if (secondsPassed >= 3) {
                     let earned = parseFloat((secondsPassed * totalCps).toFixed(2));
                     balance += earned;
-                    totalEarned += earned; // Oflayn daromad ham umumiyga qo'shiladi
+                    totalEarned += earned;
                     updateDisplay();
                     saveLocalState();
                     setTimeout(() => {
@@ -499,7 +518,7 @@
 
         function tapCoin() {
             balance += 1;
-            totalEarned += 1; // Har bir tap jami topilgan koinni oshiradi
+            totalEarned += 1;
             updateDisplay();
             saveLocalState();
         }
@@ -513,7 +532,7 @@
             let totalCps = getTotalCPS();
             if (totalCps > 0) {
                 balance += totalCps;
-                totalEarned += totalCps; // Maynerlar koin oshirganda ham yig'ib boradi
+                totalEarned += totalCps;
                 updateDisplay();
                 saveLocalState();
             }
