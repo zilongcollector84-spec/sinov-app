@@ -21,7 +21,6 @@ let totalEarned = parseFloat(localStorage.getItem('kryze_total_earned')) || bala
 let lastTime = parseInt(localStorage.getItem('kryze_last_time')) || 0;
 let usedPromos = JSON.parse(localStorage.getItem('kryze_used_promos')) || [];
 
-// YANGI MAYNER SHU YERGA QO'SHILDI (id: 0)
 const shopConfig = [
     { id: 0, name: "Boshlang'ich Mayner", price: 5000, cps: 0.03, image: "https://cdn-icons-png.flaticon.com/512/2991/2991106.png" },
     { id: 1, name: "Kichik Mayner", price: 10000, cps: 0.1, image: "https://cdn-icons-png.flaticon.com/512/6298/6298533.png" },
@@ -278,6 +277,30 @@ function tapCoin() {
 function updateDisplay() {
     document.getElementById('balance').innerText = balance.toFixed(1);
     document.getElementById('cps').innerText = getTotalCPS();
+    
+    // Top bar ismini yangilash
+    let topName = document.getElementById('topBarName');
+    if (topName) topName.innerText = user.first_name || "O'yinchi";
+}
+
+// PROFIL FUNKSIYALARI
+function openProfile() {
+    let name = user.first_name || "O'yinchi";
+    let username = user.username ? "@" + user.username : "Kiritilmagan";
+    let firstLetter = name.charAt(0).toUpperCase();
+
+    document.getElementById('profAvatar').innerText = firstLetter;
+    document.getElementById('profName').innerText = name;
+    document.getElementById('profUsername').innerText = username;
+    document.getElementById('profId').innerText = user.id || "---";
+    document.getElementById('profCps').innerText = getTotalCPS() + " koin/sek";
+    document.getElementById('profTotal').innerText = Math.floor(totalEarned).toLocaleString();
+
+    document.getElementById('profileModal').style.display = 'flex';
+}
+
+function closeProfile() {
+    document.getElementById('profileModal').style.display = 'none';
 }
 
 setInterval(() => {
