@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kryze Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Supabase JS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -26,6 +25,66 @@
             overflow-y: auto;
         }
         
+        /* Yuqori panel va Profil tugmasi */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .profile-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #f8fafc;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .profile-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Profil Modal Oynasi */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #38bdf8;
+            color: #0f172a;
+            font-size: 32px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px auto;
+            border: 3px solid #93c5fd;
+        }
+
         .balance-card {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(10px);
@@ -181,6 +240,14 @@
 </head>
 <body>
 
+    <!-- Yuqoridagi profil paneli -->
+    <div class="top-bar">
+        <div class="profile-btn" onclick="openProfile()">
+            <span>👤</span>
+            <span id="topBarName">O'yinchi</span>
+        </div>
+    </div>
+
     <div class="balance-card">
         <div style="color: #94a3b8; font-size: 13px;">Balansingiz:</div>
         <div class="coin-amount" id="balance">0</div>
@@ -221,6 +288,32 @@
         </div>
     </div>
 
+    <!-- PROFIL MODAL OYNASI -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="avatar" id="profAvatar">O</div>
+            <h3 id="profName" style="margin: 0 0 4px 0; color: #f8fafc;">O'yinchi</h3>
+            <div id="profUsername" style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">@username</div>
+            
+            <div style="background: #0f172a; padding: 12px; border-radius: 12px; font-size: 13px; text-align: left; margin-bottom: 15px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+                    <span style="color:#94a3b8;">ID:</span>
+                    <strong id="profId" style="color:#f8fafc;">000000</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+                    <span style="color:#94a3b8;">Mining tezligi:</span>
+                    <strong id="profCps" style="color:#38bdf8;">0 koin/sek</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:#94a3b8;">Jami ishlangan:</span>
+                    <strong id="profTotal" style="color:#f59e0b;">0 🪙</strong>
+                </div>
+            </div>
+
+            <button class="btn" style="width: 100%; background: #475569;" onclick="closeProfile()">Yopish</button>
+        </div>
+    </div>
+
     <!-- NAVBAR -->
     <div class="navbar">
         <div class="nav-item active" onclick="switchTab('home', this)">
@@ -245,7 +338,6 @@
         </div>
     </div>
 
-    <!-- script.js fayli shu yerda ulandi -->
     <script src="script.js"></script>
 </body>
 </html>
